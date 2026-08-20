@@ -252,6 +252,7 @@ class JoinedSubclassPersister extends AbstractEntityInheritancePersister
     ): string {
         $this->switchPersisterContext($offset, $limit);
 
+        $columnList     = $this->getSelectColumnsSQL();
         $baseTableAlias = $this->getSQLTableAlias($this->class->name);
         $joinSql        = $this->getJoinSql($baseTableAlias);
 
@@ -302,7 +303,6 @@ class JoinedSubclassPersister extends AbstractEntityInheritancePersister
         $from       = ' FROM ' . $tableName . ' ' . $baseTableAlias;
         $where      = $conditionSql !== '' ? ' WHERE ' . $conditionSql : '';
         $lock       = $this->platform->appendLockHint($from, $lockMode ?? LockMode::NONE);
-        $columnList = $this->getSelectColumnsSQL();
         $query      = 'SELECT ' . $columnList
                     . $lock
                     . $joinSql
@@ -364,9 +364,12 @@ class JoinedSubclassPersister extends AbstractEntityInheritancePersister
      */
     protected function getSelectColumnsSQL(): string
     {
-        // Create the column list fragment only once
-        if ($this->currentPersisterContext->selectColumnListSql !== null && $this->isFilterHashUpToDate()) {
-            return $this->currentPersisterContext->selectColumnListSql;
+        if ($this->currentPersisterContext->selectColumnListSql !== null) {
+            if ($this->isFilterHashUpToDate()) {
+                return $this->currentPersisterContext->selectColumnListSql;
+            }
+
+            $this->currentPersisterContext->reset();
         }
 
         $columnList       = [];

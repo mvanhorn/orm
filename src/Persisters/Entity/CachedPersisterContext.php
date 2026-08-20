@@ -57,4 +57,13 @@ class CachedPersisterContext
         public bool $handlesLimits,
     ) {
     }
+
+    public function reset(): void
+    {
+        $this->selectColumnListSql = null;
+        $this->selectJoinSql       = null;
+        $this->sqlAliasCounter     = 0;
+        $this->sqlTableAliases     = [];
+        $this->rsm                 = new ResultSetMapping();
+    }
 }
