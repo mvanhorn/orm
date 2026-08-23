@@ -47,8 +47,12 @@ abstract class AbstractEntityInheritancePersister extends BasicEntityPersister
         );
 
         $columnAlias = null;
-        if ($this->currentPersisterContext->rsm->hasColumnAliasByField($alias, $field)) {
-            $columnAlias = $this->currentPersisterContext->rsm->getColumnAliasByField($alias, $field);
+        if ($this->currentPersisterContext->rsm->hasColumnAliasByFieldForClass($alias, $field, $class->name)) {
+            $columnAlias = $this->currentPersisterContext->rsm->getColumnAliasByFieldForClass(
+                $alias,
+                $field,
+                $class->name,
+            );
         }
 
         if ($columnAlias === null) {
