@@ -250,21 +250,22 @@ class ResultSetMapping
      */
     public function addIndexBy(string $alias, string $fieldName): static
     {
-        $found = false;
+        if ($this->hasColumnAliasByField($alias, $fieldName)) {
+            return $this->addIndexByColumn($alias, $this->getColumnAliasByField($alias, $fieldName));
+        }
 
-        foreach ([...$this->metaMappings, ...$this->fieldMappings] as $columnName => $columnFieldName) {
+        foreach ($this->metaMappings as $columnName => $columnFieldName) {
             if (! ($columnFieldName === $fieldName && $this->columnOwnerMap[$columnName] === $alias)) {
                 continue;
             }
 
             $this->addIndexByColumn($alias, $columnName);
-            $found = true;
 
             break;
         }
 
         /* TODO: check if this exception can be put back, for now it's gone because of assumptions made by some ORM internals
-        if ( ! $found) {
+        if ( ! $this->hasIndexBy($alias)) {
             $message = sprintf(
                 'Cannot add index by for DQL alias %s and field %s without calling addFieldResult() for them before.',
                 $alias,

@@ -102,4 +102,23 @@ class ResultSetMappingTest extends OrmTestCase
 
         self::assertTrue($this->_rsm->hasIndexBy('lu'));
     }
+
+    public function testIndexByUsesFieldColumnAlias(): void
+    {
+        $this->_rsm->addEntityResult(CmsUser::class, 'u');
+        $this->_rsm->addFieldResult('u', 'username_0', 'username');
+        $this->_rsm->addIndexBy('u', 'username');
+
+        self::assertSame('username_0', $this->_rsm->indexByMap['u']);
+    }
+
+    public function testIndexByUsesMostRecentlyAddedFieldColumnAlias(): void
+    {
+        $this->_rsm->addEntityResult(CmsUser::class, 'u');
+        $this->_rsm->addFieldResult('u', 'username_0', 'username');
+        $this->_rsm->addFieldResult('u', 'username_1', 'username');
+        $this->_rsm->addIndexBy('u', 'username');
+
+        self::assertSame('username_1', $this->_rsm->indexByMap['u']);
+    }
 }
