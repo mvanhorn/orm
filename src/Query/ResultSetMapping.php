@@ -361,20 +361,32 @@ class ResultSetMapping
         return $this;
     }
 
-    public function hasColumnAliasByField(string $alias, string $fieldName): bool
+    /** @param class-string|null $declaringClass */
+    public function hasColumnAliasByField(
+        string $alias,
+        string $fieldName,
+        string|null $declaringClass = null,
+    ): bool
     {
-        if (! isset($this->aliasMap[$alias])) {
-            return false;
-        }
+        if ($declaringClass === null) {
+            if (! isset($this->aliasMap[$alias])) {
+                return false;
+            }
 
-        $declaringClass = $this->aliasMap[$alias];
+            $declaringClass = $this->aliasMap[$alias];
+        }
 
         return isset($this->columnAliasMappings[$declaringClass][$alias][$fieldName]);
     }
 
-    public function getColumnAliasByField(string $alias, string $fieldName): string
+    /** @param class-string|null $declaringClass */
+    public function getColumnAliasByField(
+        string $alias,
+        string $fieldName,
+        string|null $declaringClass = null,
+    ): string
     {
-        $declaringClass = $this->aliasMap[$alias];
+        $declaringClass ??= $this->aliasMap[$alias];
 
         return $this->columnAliasMappings[$declaringClass][$alias][$fieldName];
     }
