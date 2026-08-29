@@ -16,6 +16,7 @@ use Doctrine\DBAL\Schema\DefaultExpression\CurrentTimestamp;
 use Doctrine\DBAL\Schema\ForeignKeyConstraintEditor;
 use Doctrine\DBAL\Schema\Index;
 use Doctrine\DBAL\Schema\Index\IndexedColumn;
+use Doctrine\DBAL\Schema\Index\IndexType;
 use Doctrine\DBAL\Schema\Name\Identifier;
 use Doctrine\DBAL\Schema\Name\UnqualifiedName;
 use Doctrine\DBAL\Schema\NamedObject;
@@ -51,6 +52,7 @@ use function assert;
 use function class_exists;
 use function count;
 use function current;
+use function enum_exists;
 use function implode;
 use function in_array;
 use function interface_exists;
@@ -406,7 +408,12 @@ class SchemaTool
                     $uniqIndex = new Index('tmp__' . $indexName, $this->getIndexColumns($class, $indexData), true, false, [], $indexData['options'] ?? []);
 
                     foreach ($table->getIndexes() as $tableIndexName => $tableIndex) {
-                        if ($tableIndex->isFulfilledBy($uniqIndex)) {
+                        $isConventionalIndex = enum_exists(IndexType::class)
+                            ? in_array($tableIndex->getType(), [IndexType::REGULAR, IndexType::UNIQUE], true)
+                                && ! $tableIndex->isClustered()
+                            : $tableIndex->getFlags() === [];
+
+                        if ($isConventionalIndex && $tableIndex->isFulfilledBy($uniqIndex)) {
                             $table->dropIndex($tableIndexName);
                             break;
                         }

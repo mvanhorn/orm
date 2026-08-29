@@ -233,6 +233,30 @@ class SchemaToolTest extends OrmTestCase
         self::assertTrue($table->hasIndex('uniq_hash'));
     }
 
+    public function testFulltextIndexIsPreservedOnUniqueColumn(): void
+    {
+        $em         = $this->getTestEntityManager();
+        $schemaTool = new SchemaTool($em);
+
+        $schema = $schemaTool->getSchemaFromMetadata(
+            [$em->getClassMetadata(FulltextIndexOnUniqueColumnModel::class)],
+        );
+        $table  = $schema->getTable('fulltext_index_on_unique_column');
+
+        self::assertCount(3, $table->getIndexes());
+        self::assertTrue($table->hasIndex('primary'));
+        self::assertTrue($table->hasIndex('uniq_content'));
+        self::assertTrue($table->hasIndex('idx_content_fulltext'));
+
+        $fulltextIndex = $table->getIndex('idx_content_fulltext');
+
+        if (enum_exists(IndexType::class)) {
+            self::assertSame(IndexType::FULLTEXT, $fulltextIndex->getType());
+        } else {
+            self::assertTrue($fulltextIndex->hasFlag('fulltext'));
+        }
+    }
+
     public function testRemoveUniqueIndexOverruledByPrimaryKey(): void
     {
         $em         = $this->getTestEntityManager();
@@ -625,6 +649,20 @@ class UniqueConstraintAttributeModel
 
     #[Column(name: 'hash', type: 'string', length: 8, nullable: false, unique: true)]
     private string $hash;
+}
+
+#[Table(name: 'fulltext_index_on_unique_column')]
+#[Index(name: 'idx_content_fulltext', columns: ['content'], flags: ['fulltext'])]
+#[UniqueConstraint(name: 'uniq_content', columns: ['content'])]
+#[Entity]
+class FulltextIndexOnUniqueColumnModel
+{
+    #[Id]
+    #[Column]
+    private int $id;
+
+    #[Column]
+    private string $content;
 }
 
 #[Table(name: 'first_entity')]
