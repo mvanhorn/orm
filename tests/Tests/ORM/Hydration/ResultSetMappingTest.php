@@ -102,4 +102,17 @@ class ResultSetMappingTest extends OrmTestCase
 
         self::assertTrue($this->_rsm->hasIndexBy('lu'));
     }
+
+    public function testColumnAliasLookupCanUseDeclaringClass(): void
+    {
+        $this->_rsm->addEntityResult(CmsUser::class, 'u');
+        $this->_rsm->addFieldResult('u', 'username_alias', 'username');
+        $this->_rsm->addFieldResult('u', 'legacy_id', 'id', LegacyUser::class);
+
+        self::assertTrue($this->_rsm->hasColumnAliasByField('u', 'username'));
+        self::assertSame('username_alias', $this->_rsm->getColumnAliasByField('u', 'username'));
+        self::assertFalse($this->_rsm->hasColumnAliasByField('u', 'id'));
+        self::assertTrue($this->_rsm->hasColumnAliasByField('u', 'id', LegacyUser::class));
+        self::assertSame('legacy_id', $this->_rsm->getColumnAliasByField('u', 'id', LegacyUser::class));
+    }
 }
